@@ -1,0 +1,11 @@
+{
+  "name": "room-impulse-lab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser-local room acoustics workbench: Sabine, Eyring and Millington-Sette RT60, image-source reflections, Schroeder decay analysis.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

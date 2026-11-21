@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="Room Impulse Lab: a browser-local room acoustics workbench. Sabine, Eyring and Millington-Sette RT60, image-source reflections, Schroeder decay analysis and WAV/CSV/JSON export.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232658b8'/%3E%3Cpath d='M14 40 Q22 18 30 40 T46 40 Q50 30 52 40' stroke='white' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <title>Room Impulse Lab - Browser Acoustics Workbench</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">RI</span>
+      <div>
+        <p class="brand-name">Room Impulse Lab</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="privacy-pill">
+        <span class="privacy-dot" aria-hidden="true"></span>
+        <span>100% browser local</span>
+      </span>
+      <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch color theme" title="Switch color theme">
+        <span aria-hidden="true">◐</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <h1 id="hero-title">Room Impulse Lab</h1>
+        <div class="hero-actions">
+          <button class="button primary" id="hear-room" type="button">Hear the room <span aria-hidden="true">♪</span></button>
+          <a class="button ghost" href="#lab">Open the lab <span aria-hidden="true">→</span></a>
+        </div>
+        <ul class="hero-facts" aria-label="Project facts">
+          <li><strong>Geometric acoustics</strong> image sources to order 6</li>
+          <li><strong>Three models</strong> Sabine, Eyring, Millington-Sette</li>
+          <li><strong>Offline</strong> no network, audio only on your click</li>
+        </ul>
+      </div>
+      <aside class="hero-panel" aria-label="Live room snapshot">
+        <div class="panel-head">
+          <span class="live-badge"><span aria-hidden="true">●</span> MODEL</span>
+        </div>
+        <div class="snapshot-metric">
+          <span class="snapshot-label">Eyring reverberation at 1 kHz</span>
+          <span class="snapshot-value" id="hero-t60">--</span>
+          <span class="snapshot-sub">Computed from room volume and absorption</span>
+        </div>
+        <div class="snapshot-metric">
+          <span class="snapshot-label">Specular image sources</span>
+          <span class="snapshot-value" id="hero-paths">--</span>
+          <span class="snapshot-sub">Reflected copies of the source, delay sorted</span>
+        </div>
+        <div class="snapshot-metric">
+          <span class="snapshot-label">Direct sound delay</span>
+          <span class="snapshot-value" id="hero-direct">--</span>
+          <span class="snapshot-sub">Distance divided by 343 m/s</span>
+        </div>
+      </aside>
+    </section>
+
+    <p class="error-banner" id="error-banner" role="alert" hidden></p>
+
+    <section id="lab" class="section" aria-labelledby="lab-title">
+      <div class="section-head">
+        <div>
+          <h2 id="lab-title">Shape the room. Read the decay.</h2>
+        </div>
+      </div>
+
+      <div class="control-grid">
+        <fieldset class="control-block">
+          <legend class="control-legend">Room size (m)</legend>
+          <label class="field" for="dim-x">Length x <input id="dim-x" type="number" min="0.5" max="60" step="0.1" value="6.0" class="number-input"></label>
+          <label class="field" for="dim-y">Width y <input id="dim-y" type="number" min="0.5" max="60" step="0.1" value="4.5" class="number-input"></label>
+          <label class="field" for="dim-z">Height z <input id="dim-z" type="number" min="0.5" max="20" step="0.1" value="3.0" class="number-input"></label>
+        </fieldset>
+
+        <fieldset class="control-block">
+          <legend class="control-legend">Source position (m)</legend>
+          <label class="field" for="src-x">x <input id="src-x" type="number" min="0" max="60" step="0.1" value="2.0" class="number-input"></label>
+          <label class="field" for="src-y">y <input id="src-y" type="number" min="0" max="60" step="0.1" value="1.6" class="number-input"></label>
+          <label class="field" for="src-z">z <input id="src-z" type="number" min="0" max="20" step="0.1" value="1.2" class="number-input"></label>
+        </fieldset>
+
+        <fieldset class="control-block">
+          <legend class="control-legend">Listener position (m)</legend>
+          <label class="field" for="lis-x">x <input id="lis-x" type="number" min="0" max="60" step="0.1" value="4.6" class="number-input"></label>
+          <label class="field" for="lis-y">y <input id="lis-y" type="number" min="0" max="60" step="0.1" value="3.2" class="number-input"></label>
+          <label class="field" for="lis-z">z <input id="lis-z" type="number" min="0" max="20" step="0.1" value="1.4" class="number-input"></label>
+        </fieldset>
+
+        <fieldset class="control-block">
+          <legend class="control-legend">Model</legend>
+          <label class="field" for="order">Reflection order <output id="order-value" for="order">3</output>
+            <input id="order" type="range" min="0" max="6" step="1" value="3" class="range">
+          </label>
+          <label class="field" for="seed">Noise seed <input id="seed" type="number" min="1" max="999999" step="1" value="7" class="number-input"></label>
+          <label class="field" for="duration">IR length s <input id="duration" type="number" min="0.3" max="4" step="0.1" value="1.5" class="number-input"></label>
+        </fieldset>
+      </div>
+
+      <div class="materials-grid" role="group" aria-label="Surface materials">
+        <div class="control-block"><label class="field" for="mat-xMin">Wall x = 0 <select id="mat-xMin" class="select" data-default="gypsum"></select></label></div>
+        <div class="control-block"><label class="field" for="mat-xMax">Wall x = L <select id="mat-xMax" class="select" data-default="gypsum"></select></label></div>
+        <div class="control-block"><label class="field" for="mat-yMin">Wall y = 0 <select id="mat-yMin" class="select" data-default="glass"></select></label></div>
+        <div class="control-block"><label class="field" for="mat-yMax">Wall y = W <select id="mat-yMax" class="select" data-default="gypsum"></select></label></div>
+        <div class="control-block"><label class="field" for="mat-floor">Floor <select id="mat-floor" class="select" data-default="carpet"></select></label></div>
+        <div class="control-block"><label class="field" for="mat-ceiling">Ceiling <select id="mat-ceiling" class="select" data-default="acoustictile"></select></label></div>
+      </div>
+
+      <div class="headline-metrics" id="headline-metrics">
+        <div class="metric-card accent">
+          <span class="metric-label">Eyring T60 @1 kHz</span>
+          <strong class="metric-value" id="card-eyring1k">--</strong>
+          <span class="metric-foot">statistical model</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Sabine T60 @1 kHz</span>
+          <strong class="metric-value" id="card-sabine1k">--</strong>
+          <span class="metric-foot">classic estimate</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Measured T30 @1 kHz</span>
+          <strong class="metric-value" id="card-measured1k">--</strong>
+          <span class="metric-foot">Schroeder fit on the IR</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Image sources</span>
+          <strong class="metric-value" id="card-paths">--</strong>
+          <span class="metric-foot" id="card-mfp-wrap">mean free path <strong id="card-mfp">--</strong></span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Room volume</span>
+          <strong class="metric-value" id="card-volume">--</strong>
+          <span class="metric-foot">drives every model</span>
+        </div>
+      </div>
+
+      <p class="status-line" id="status-line" role="status" aria-live="polite">--</p>
+    </section>
+
+    <section class="section" aria-labelledby="charts-title">
+      <div class="section-head">
+        <div>
+          <h2 id="charts-title">Geometry, waveform and decay.</h2>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <figure class="chart-card">
+          <figcaption><span class="chart-title">Plan view</span><span class="chart-sub">top down, first-order images</span></figcaption>
+          <canvas id="plan-canvas" width="620" height="420" role="img" aria-label="Top down room plan with source, listener and first-order image sources"></canvas>
+        </figure>
+        <figure class="chart-card">
+          <figcaption><span class="chart-title">Impulse response</span><span class="chart-sub">direct, reflections, diffuse tail</span></figcaption>
+          <canvas id="wave-canvas" width="620" height="420" role="img" aria-label="Impulse response waveform over time"></canvas>
+        </figure>
+        <figure class="chart-card">
+          <figcaption><span class="chart-title">Schroeder decay</span><span class="chart-sub">backward-integrated energy</span></figcaption>
+          <canvas id="decay-canvas" width="620" height="420" role="img" aria-label="Schroeder energy decay curve with fitted T30 slope"></canvas>
+        </figure>
+        <figure class="chart-card">
+          <figcaption><span class="chart-title">RT60 by octave band</span><span class="chart-sub">models vs measured</span></figcaption>
+          <canvas id="bands-canvas" width="620" height="420" role="img" aria-label="Bar chart of reverberation time per octave band for Sabine, Eyring and measured T30"></canvas>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="table-title">
+      <div class="section-head">
+        <div>
+          <h2 id="table-title">Every band, three formulas, one measurement.</h2>
+        </div>
+      </div>
+      <div class="table-wrap" tabindex="0" aria-label="Reverberation time table, scroll horizontally if needed">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Band</th>
+              <th scope="col">Mean alpha</th>
+              <th scope="col">A (m2)</th>
+              <th scope="col">Sabine (s)</th>
+              <th scope="col">Eyring (s)</th>
+              <th scope="col">Millington (s)</th>
+              <th scope="col">Measured T30 (s)</th>
+            </tr>
+          </thead>
+          <tbody id="rt60-body"></tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap" tabindex="0" aria-label="Reflection path table, scroll horizontally if needed">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Path</th>
+              <th scope="col">Order</th>
+              <th scope="col">Delay</th>
+              <th scope="col">Distance</th>
+              <th scope="col">Gain @1 kHz</th>
+            </tr>
+          </thead>
+          <tbody id="path-body"></tbody>
+        </table>
+      </div>
+      <p class="table-note" id="path-note">--</p>
+    </section>
+
+    <section class="section" aria-labelledby="listen-title">
+      <div class="section-head">
+        <div>
+          <h2 id="listen-title">Listen only when you ask.</h2>
+        </div>
+      </div>
+      <div class="listen-row">
+        <button class="button ghost" id="play-sweep" type="button">Play dry sweep</button>
+        <button class="button ghost" id="play-ir" type="button">Play impulse response</button>
+        <button class="button primary" id="auralize" type="button">Auralize the room</button>
+      </div>
+      <p class="control-help">Nothing makes sound on load. These buttons are the only places audio exists: the dry excitation sweep, the synthetic impulse response, and the sweep convolved with it.</p>
+    </section>
+
+    <section class="section" aria-labelledby="method-title">
+      <div class="section-head">
+        <div>
+          <h2 id="method-title">What the model knows, and what it ignores.</h2>
+        </div>
+      </div>
+      <div class="method-grid">
+        <article class="method-card">
+          <h3>Statistical reverberation</h3>
+          <p>Sabine: T = 0.161 V / A. Eyring: T = 0.161 V / (-S ln(1 - a_bar)). Millington-Sette sums -S_i ln(1 - a_i) per surface. Air absorption adds 4 m V at the top bands.</p>
+        </article>
+        <article class="method-card">
+          <h3>Image sources</h3>
+          <p>Each wall mirror is an integer lattice cell. Delay is distance over 343 m/s; pressure gain is 1/distance times sqrt(1 - alpha) per bounce. Order caps at 6.</p>
+        </article>
+        <article class="method-card">
+          <h3>Decay analysis</h3>
+          <p>Schroeder backward integration turns the impulse response into an energy decay curve. EDT fits 0 to -10 dB, T20 fits -5 to -25, T30 fits -5 to -35 and extrapolates to 60 dB.</p>
+        </article>
+        <article class="method-card">
+          <h3>Limits</h3>
+          <p>Geometric acoustics: no diffraction, scattering, flutter echo modes or coupled rooms. The diffuse tail is seeded noise matched to Eyring decay, a teaching stand-in for a measured room.</p>
+        </article>
+      </div>
+      <div class="fine-print">
+        <p><strong>Honesty note.</strong> Every number is computed live from the room you describe. Nothing is recorded,
+          uploaded or measured from a real space. Measured T30 comes from the same synthesized response the
+          charts show, so any gap between model and measurement is the model's own limitation, not hidden.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>
+      <p class="footer-brand">Room Impulse Lab</p>
+      <p>A zero-dependency acoustics teaching workbench.</p>
+    </div>
+    <div class="footer-links">
+      <button id="export-wav" class="button ghost small" type="button">Export WAV</button>
+      <button id="export-rt60" class="button ghost small" type="button">Export RT60 CSV</button>
+      <button id="export-paths" class="button ghost small" type="button">Export paths CSV</button>
+      <button id="export-json" class="button ghost small" type="button">Export JSON</button>
+    </div>
+    <p class="footer-note">No cookies. No analytics. No network requests. No sound without a click. MIT licensed.</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
