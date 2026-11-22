@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <meta name="description" content="Room Impulse Lab: a browser-local room acoustics workbench. Sabine, Eyring and Millington-Sette RT60, image-source reflections, Schroeder decay analysis and WAV/CSV/JSON export.">
+  <meta name="description" content="Room Impulse Lab: a browser-local room acoustics workbench. Sabine, Eyring and Millington-Sette RT60, ISO 3382 clarity metrics, ANSI S12.60 classroom checks, interactive ray-bounce tracing and fingerprinted WAV/CSV/JSON export.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232658b8'/%3E%3Cpath d='M14 40 Q22 18 30 40 T46 40 Q50 30 52 40' stroke='white' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
   <title>Room Impulse Lab - Browser Acoustics Workbench</title>
   <link rel="stylesheet" href="styles.css">
@@ -42,6 +42,7 @@
         <ul class="hero-facts" aria-label="Project facts">
           <li><strong>Geometric acoustics</strong> image sources to order 6</li>
           <li><strong>Three models</strong> Sabine, Eyring, Millington-Sette</li>
+          <li><strong>Speech suite</strong> ISO 3382 C50, D50, ANSI S12.60</li>
           <li><strong>Offline</strong> no network, audio only on your click</li>
         </ul>
       </div>
@@ -146,6 +147,35 @@
       </div>
 
       <p class="status-line" id="status-line" role="status" aria-live="polite">--</p>
+
+      <div class="clarity-grid" id="clarity-grid" aria-label="Speech and music clarity metrics">
+        <div class="metric-card accent">
+          <span class="metric-label">C50 speech clarity</span>
+          <strong class="metric-value" id="card-c50">--</strong>
+          <span class="metric-foot">ISO 3382, <strong id="card-c50-rate">--</strong></span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">C80 music clarity</span>
+          <strong class="metric-value" id="card-c80">--</strong>
+          <span class="metric-foot">early to late energy at 80 ms</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">D50 definition</span>
+          <strong class="metric-value" id="card-d50">--</strong>
+          <span class="metric-foot">early energy fraction</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">EDT</span>
+          <strong class="metric-value" id="card-edt">--</strong>
+          <span class="metric-foot">early decay time, 0 to -10 dB fit</span>
+        </div>
+        <div class="metric-card ansi-card" id="ansi-card">
+          <span class="metric-label">ANSI S12.60 classroom</span>
+          <strong class="metric-value ansi-badge" id="ansi-badge">--</strong>
+          <span class="metric-foot" id="ansi-detail">--</span>
+        </div>
+      </div>
+      <p class="ansi-note" id="ansi-note">--</p>
     </section>
 
     <section class="section" aria-labelledby="charts-title">
@@ -170,6 +200,10 @@
         <figure class="chart-card">
           <figcaption><span class="chart-title">RT60 by octave band</span><span class="chart-sub">models vs measured</span></figcaption>
           <canvas id="bands-canvas" width="620" height="420" role="img" aria-label="Bar chart of reverberation time per octave band for Sabine, Eyring and measured T30"></canvas>
+        </figure>
+        <figure class="chart-card wide">
+          <figcaption><span class="chart-title">Ray-bounce plan</span><span class="chart-sub" id="ray-note">--</span></figcaption>
+          <svg id="ray-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-label="Interactive top-down ray-bounce plan: drag the source or listener to update the model"></svg>
         </figure>
       </div>
     </section>
@@ -211,6 +245,23 @@
           <tbody id="path-body"></tbody>
         </table>
       </div>
+
+      <div class="table-wrap" tabindex="0" aria-label="Clarity and early decay table, scroll horizontally if needed">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Band</th>
+              <th scope="col">C50 (dB)</th>
+              <th scope="col">C80 (dB)</th>
+              <th scope="col">D50</th>
+              <th scope="col">EDT (s)</th>
+              <th scope="col">T20 (s)</th>
+              <th scope="col">T30 (s)</th>
+            </tr>
+          </thead>
+          <tbody id="clarity-body"></tbody>
+        </table>
+      </div>
       <p class="table-note" id="path-note">--</p>
     </section>
 
@@ -224,8 +275,23 @@
         <button class="button ghost" id="play-sweep" type="button">Play dry sweep</button>
         <button class="button ghost" id="play-ir" type="button">Play impulse response</button>
         <button class="button primary" id="auralize" type="button">Auralize the room</button>
+        <button class="button ghost" id="ab-compare" type="button">A/B dry vs room</button>
       </div>
-      <p class="control-help">Nothing makes sound on load. These buttons are the only places audio exists: the dry excitation sweep, the synthetic impulse response, and the sweep convolved with it.</p>
+      <p class="ab-status" id="ab-status" role="status" aria-live="polite" hidden></p>
+      <p class="control-help">Nothing makes sound on load. These buttons are the only places audio exists: the dry excitation sweep, the synthetic impulse response, and the sweep convolved with it. A/B plays the dry sweep, then the convolved one.</p>
+    </section>
+
+    <section class="section" aria-labelledby="selftest-title">
+      <div class="section-head">
+        <div>
+          <h2 id="selftest-title">The lab audits itself.</h2>
+        </div>
+      </div>
+      <div class="selftest-block">
+        <button class="button ghost" id="run-selftests" type="button">Run self-tests</button>
+        <p class="selftest-summary" id="selftest-summary">Engine checks have not run yet.</p>
+        <ul class="selftest-list" id="selftest-list"></ul>
+      </div>
     </section>
 
     <section class="section" aria-labelledby="method-title">
@@ -268,9 +334,13 @@
     <div class="footer-links">
       <button id="export-wav" class="button ghost small" type="button">Export WAV</button>
       <button id="export-rt60" class="button ghost small" type="button">Export RT60 CSV</button>
+      <button id="export-clarity" class="button ghost small" type="button">Export clarity CSV</button>
       <button id="export-paths" class="button ghost small" type="button">Export paths CSV</button>
+      <button id="export-ansi" class="button ghost small" type="button">Export ANSI CSV</button>
       <button id="export-json" class="button ghost small" type="button">Export JSON</button>
+      <button id="export-report" class="button ghost small" type="button">Export report</button>
     </div>
+    <p class="footer-hash" id="report-sha">SHA-256 --</p>
     <p class="footer-note">No cookies. No analytics. No network requests. No sound without a click. MIT licensed.</p>
   </footer>
 

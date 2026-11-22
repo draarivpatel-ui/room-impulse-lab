@@ -7,6 +7,7 @@ import {
 } from './acoustics.js';
 import { allPaths, directPath } from './images.js';
 import { synthesizeIR, normalizePeak, schroeder, fitDecay, applyBandpass, bandpassBiquad, estimateRT60, BAND_Q, BAND_STAGES } from './ir.js';
+import { clarityTable, ansiClassroom } from './clarity.js';
 
 export function mergeConfig(cfg = {}) {
   const base = DEFAULT_ROOM;
@@ -52,6 +53,10 @@ export function simulate(cfg = {}) {
     };
   });
   const broadband = estimateRT60(ir, sampleRate);
+  const clarity = clarityTable(ir, sampleRate);
+  // ANSI S12.60 judges the modeled (Eyring) reverberation time: deterministic
+  // and independent of the seeded stochastic tail.
+  const ansi = ansiClassroom(config.dims, config.materials, (b) => summary.bands[b].eyring);
 
   return {
     ok: true,
@@ -67,6 +72,8 @@ export function simulate(cfg = {}) {
     sampleRate,
     measured,
     broadband,
+    clarity,
+    ansi,
     stats: {
       pathCount: paths.length,
       imageCount: paths.length - 1,

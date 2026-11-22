@@ -1,0 +1,11 @@
+Room Impulse Lab is a room acoustics workbench that lives entirely in one static page. Describe a rectangular room, place a source and a listener, pick real surface materials, and it synthesizes the impulse response live, then measures the decay like a real measurement chain. The hero card reads the Eyring time at one kilohertz, the specular source count and the direct sound delay before you touch a control.
+
+Room size, source and listener positions, reflection order and nine material surfaces feed a single simulation. Sliding the order to six unfolds three hundred and seventy six image sources on the integer lattice, each delayed by distance and attenuated by every wall it crossed.
+
+Four canvases answer back, the top down plan with first order images, the pressure waveform, the Schroeder backward integral with its fitted T thirty slope, and the octave band bars for Sabine, Eyring and the measured T thirty side by side.
+
+The table reports all six bands under three classic formulas, Sabine, Eyring and Millington Sette, beside the EDT, T twenty and T thirty values the least squares fits extract from the synthesized tail. Here the formulas diverge exactly where the model says they should.
+
+Nothing makes a sound on its own. The three listening buttons create the audio context inside a click, render the sweep, the impulse response, or a full offline auralization, and stay the only place audio exists.
+
+Exports leave as WAV PCM sixteen, formula injection safe CSV and JSON, all written by the page itself. One hundred and ninety automated tests guard the model. Shape the room, read the decay, entirely offline.

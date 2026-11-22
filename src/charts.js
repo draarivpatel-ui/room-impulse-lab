@@ -168,8 +168,9 @@ export function drawWaveform(canvas, ir, sampleRate) {
   ctx.stroke();
 }
 
-/** Schroeder decay curve with the fitted T30 segment highlighted. */
-export function drawDecay(canvas, edc, fit, sampleRate) {
+/** Schroeder decay curve with the fitted T30 segment highlighted and
+ * optional time markers (e.g. the C50 and C80 early-energy boundaries). */
+export function drawDecay(canvas, edc, fit, sampleRate, markers) {
   const s = setup(canvas);
   if (!s) return;
   const { ctx, w, h, p } = s;
@@ -224,6 +225,27 @@ export function drawDecay(canvas, edc, fit, sampleRate) {
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.fillText('T30 ' + (-60 / fit.slope).toFixed(2) + ' s', m.l + pw - 4, m.t + 6);
+  }
+
+  // Clarity split times (50 ms, 80 ms) as dotted verticals.
+  if (Array.isArray(markers) && dur > 0) {
+    ctx.strokeStyle = p.teal;
+    ctx.fillStyle = p.teal;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+    ctx.font = font10();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    for (const mk of markers) {
+      if (!mk || !(mk.t > 0) || mk.t >= dur) continue;
+      const x = m.l + (mk.t / dur) * pw;
+      ctx.beginPath();
+      ctx.moveTo(x, m.t);
+      ctx.lineTo(x, m.t + ph);
+      ctx.stroke();
+      if (mk.label) ctx.fillText(mk.label, x + 3, m.t + 2);
+    }
+    ctx.setLineDash([]);
   }
 }
 
