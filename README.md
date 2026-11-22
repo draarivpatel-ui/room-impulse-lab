@@ -6,6 +6,8 @@ impulse response live, measures its decay like a real measurement chain, and
 compares it against the three classic reverberation formulas. Everything runs
 offline in a single static page with zero dependencies and zero network calls.
 
+**Live demo:** aariv.me/room-impulse-lab/
+
 ## Open it
 
 Serve the folder over local HTTP, then open the URL in any modern browser. ES
