@@ -11,7 +11,14 @@ import { rt60Rows, pathRows } from './export.js';
 /** Canonical JSON: stable because every object is built with a fixed key
  * order. Used for fingerprinting and for the downloaded file itself. */
 export function canonicalJson(obj) {
-  return JSON.stringify(obj);
+  const canon = (v) => {
+    if (Array.isArray(v)) return v.map(canon);
+    if (!v || typeof v !== 'object') return v;
+    const out = {};
+    for (const k of Object.keys(v).sort()) out[k] = canon(v[k]);
+    return out;
+  };
+  return JSON.stringify(canon(obj));
 }
 
 const round = (x, d) => {

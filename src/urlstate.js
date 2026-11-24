@@ -36,25 +36,44 @@ function b64encode(str) {
 function b64decode(b64) {
   const tbl = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   const s = String(b64).replace(/-/g, '+').replace(/_/g, '/');
+  // State hashes are unpadded base64url. Reject unknown characters, impossible
+  // lengths and non-zero trailing pad bits instead of silently truncating them.
+  if (!s || !/^[A-Za-z0-9+/]+$/.test(s) || s.length % 4 === 1) return '';
+  const vals = Array.from(s, (ch) => tbl.indexOf(ch));
+  if (vals.length % 4 === 2 && (vals[vals.length - 1] & 0x0f) !== 0) return '';
+  if (vals.length % 4 === 3 && (vals[vals.length - 1] & 0x03) !== 0) return '';
   const bytes = [];
-  for (let i = 0; i < s.length; i += 4) {
-    const c = [0, 1, 2, 3].map((j) => (i + j < s.length ? tbl.indexOf(s[i + j]) : -1));
-    if (c[0] < 0 || c[1] < 0) break;
-    const n = (c[0] << 18) | (c[1] << 12) | ((c[2] < 0 ? 0 : c[2]) << 6) | (c[3] < 0 ? 0 : c[3]);
-    bytes.push((n >> 16) & 255);
-    if (c[2] >= 0) bytes.push((n >> 8) & 255);
-    if (c[3] >= 0) bytes.push(n & 255);
+  for (let i = 0; i < vals.length; i += 4) {
+    const a = vals[i], b = vals[i + 1];
+    bytes.push((a << 2) | (b >> 4));
+    const c = vals[i + 2];
+    if (c !== undefined) {
+      bytes.push(((b & 15) << 4) | (c >> 2));
+      const d = vals[i + 3];
+      if (d !== undefined) bytes.push(((c & 3) << 6) | d);
+    }
   }
-  // UTF-8 decode.
+  // Strict UTF-8 decode: malformed continuation bytes, overlong forms,
+  // surrogates and out-of-range code points all invalidate the hash.
   let str = '';
   for (let i = 0; i < bytes.length; i++) {
     const b = bytes[i];
     if (b < 0x80) { str += String.fromCharCode(b); continue; }
     let code = 0, need = 0;
-    if (b < 0xe0) { code = b & 0x1f; need = 1; }
-    else if (b < 0xf0) { code = b & 0x0f; need = 2; }
-    else { code = b & 0x07; need = 3; }
-    for (let j = 0; j < need; j++) code = (code << 6) | (bytes[++i] & 0x3f);
+    if ((b & 0xe0) === 0xc0) { code = b & 0x1f; need = 1; }
+    else if ((b & 0xf0) === 0xe0) { code = b & 0x0f; need = 2; }
+    else if ((b & 0xf8) === 0xf0) { code = b & 0x07; need = 3; }
+    else return '';
+    if (i + need >= bytes.length) return '';
+    for (let j = 1; j <= need; j++) {
+      const cb = bytes[i + j];
+      if ((cb & 0xc0) !== 0x80) return '';
+      code = (code << 6) | (cb & 0x3f);
+    }
+    i += need;
+    if ((need === 1 && code < 0x80) || (need === 2 && code < 0x800) || (need === 3 && code < 0x10000)) return '';
+    if (code >= 0xd800 && code <= 0xdfff) return '';
+    if (code > 0x10ffff) return '';
     if (code > 0xffff) {
       code -= 0x10000;
       str += String.fromCharCode(0xd800 + (code >> 10), 0xdc00 + (code & 0x3ff));
