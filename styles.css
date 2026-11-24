@@ -3,7 +3,7 @@
   color-scheme: light;
   --ink: #1c2430;
   --ink-soft: #4b586a;
-  --ink-faint: #64748a;
+  --ink-faint: #5b6b82;
   --paper: #f6f8fb;
   --panel: #ffffff;
   --panel-alt: #eef2f6;
@@ -204,7 +204,7 @@ main { max-width: 1440px; margin: 0 auto; }
   box-shadow: var(--shadow);
 }
 .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-.live-badge { font-size: 10px; font-weight: 750; letter-spacing: 0.08em; color: var(--accent-ink); background: var(--accent-soft); border-radius: 999px; padding: 4px 9px; }
+.live-badge { font-size: 11px; font-weight: 750; letter-spacing: 0.08em; color: var(--accent-ink); background: var(--accent-soft); border-radius: 999px; padding: 4px 9px; }
 .live-badge span { font-size: 8px; margin-right: 3px; }
 .snapshot-metric { padding: 18px 0; border-bottom: 1px solid var(--line); }
 .snapshot-metric:last-of-type { border-bottom: none; }
@@ -327,7 +327,7 @@ canvas { display: block; width: 100%; height: auto; background: transparent; }
 .ray-ticks text, .ray-wall-label, .ray-legend-text, .ray-handle-label {
   fill: var(--ink-faint);
   font-family: var(--sans);
-  font-size: 10px;
+  font-size: 11px;
 }
 .ray-wall-label { font-size: 9.5px; font-weight: 600; }
 .ray-handle-label { font-size: 11px; font-weight: 650; }
@@ -467,7 +467,7 @@ canvas { display: block; width: 100%; height: auto; background: transparent; }
 }
 @media (max-width: 720px) {
   .topbar { padding: 12px 16px; }
-  .privacy-pill { font-size: 10px; padding: 6px 9px; }
+  .privacy-pill { font-size: 11px; padding: 6px 9px; }
   .hero { padding: 44px 18px 56px; gap: 36px; }
   .section { padding: 52px 18px; }
   .section-head { flex-direction: column; align-items: start; gap: 14px; }

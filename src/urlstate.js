@@ -105,14 +105,15 @@ export function decodeState(hash) {
   wire.m.forEach((id, i) => {
     materials[SURFACE_IDS[i]] = MAT_IDS.has(id) ? id : B.materials[SURFACE_IDS[i]];
   });
+  const dims = {
+    x: clampN(wire.d[0], 0.5, 60, B.dims.x),
+    y: clampN(wire.d[1], 0.5, 60, B.dims.y),
+    z: clampN(wire.d[2], 0.5, 20, B.dims.z)
+  };
   return {
-    dims: {
-      x: clampN(wire.d[0], 0.5, 60, B.dims.x),
-      y: clampN(wire.d[1], 0.5, 60, B.dims.y),
-      z: clampN(wire.d[2], 0.5, 20, B.dims.z)
-    },
-    source: { x: clampN(wire.s && wire.s[0], 0, 60, B.source.x), y: clampN(wire.s && wire.s[1], 0, 60, B.source.y), z: clampN(wire.s && wire.s[2], 0, 20, B.source.z) },
-    listener: { x: clampN(wire.l && wire.l[0], 0, 60, B.listener.x), y: clampN(wire.l && wire.l[1], 0, 60, B.listener.y), z: clampN(wire.l && wire.l[2], 0, 20, B.listener.z) },
+    dims,
+    source: { x: clampN(wire.s && wire.s[0], 0, dims.x, B.source.x), y: clampN(wire.s && wire.s[1], 0, dims.y, B.source.y), z: clampN(wire.s && wire.s[2], 0, dims.z, B.source.z) },
+    listener: { x: clampN(wire.l && wire.l[0], 0, dims.x, B.listener.x), y: clampN(wire.l && wire.l[1], 0, dims.y, B.listener.y), z: clampN(wire.l && wire.l[2], 0, dims.z, B.listener.z) },
     materials,
     maxOrder: Math.round(clampN(wire.o, 0, 6, B.maxOrder)),
     seed: Math.max(1, Math.floor(clampN(wire.e, 1, 999999, B.seed))),

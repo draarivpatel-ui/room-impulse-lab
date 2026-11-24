@@ -237,6 +237,9 @@ export function validateRoom(cfg) {
   if (!Number.isFinite(c.maxOrder) || c.maxOrder < 0 || c.maxOrder > 8 || Math.floor(c.maxOrder) !== c.maxOrder) {
     errors.push('reflection order must be an integer between 0 and 8');
   }
+  if (!Number.isFinite(c.duration) || c.duration <= 0 || c.duration > 8) errors.push('IR duration must be positive and no more than 8 seconds');
+  if (!Number.isInteger(c.sampleRate) || c.sampleRate < 8000 || c.sampleRate > 192000) errors.push('sample rate must be an integer between 8000 and 192000');
+  if (!Number.isInteger(c.seed) || c.seed < 1 || c.seed > 4294967295) errors.push('noise seed must be a positive integer');
   if (c.source && c.listener && distance(c.source, c.listener) < 0.05) {
     errors.push('source and listener must be at least 5 cm apart');
   }
