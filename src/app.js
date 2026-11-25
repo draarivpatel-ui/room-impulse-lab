@@ -388,7 +388,7 @@ async function auralize() {
   const dry = drySweep(sr);
   const wet = await renderWet(sim, dry, sr);
   if (!wet) { toast('Auralization failed; playing dry sweep.'); playSamples(dry, sr, 0.9); return; }
-  playSamples(wet, sr, 0.9);
+  if (playSamples(wet, sr, 0.9)) toast('Playing the room auralization.');
 }
 
 /* A/B audition: the dry sweep, a beat of silence, then the same sweep
@@ -457,10 +457,10 @@ function wire() {
 
   $('play-sweep').addEventListener('click', () => {
     const sim = state.sim;
-    playSamples(drySweep(sim ? sim.sampleRate : 44100), sim ? sim.sampleRate : 44100, 0.9);
+    if (playSamples(drySweep(sim ? sim.sampleRate : 44100), sim ? sim.sampleRate : 44100, 0.9)) toast('Playing the dry sweep.');
   });
   $('play-ir').addEventListener('click', () => {
-    if (state.sim) playSamples(state.sim.playback, state.sim.sampleRate, 0.9);
+    if (state.sim && playSamples(state.sim.playback, state.sim.sampleRate, 0.9)) toast('Playing the impulse response.');
   });
   $('auralize').addEventListener('click', auralize);
   $('hear-room').addEventListener('click', auralize);

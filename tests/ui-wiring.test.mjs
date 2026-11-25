@@ -94,3 +94,9 @@ test('meta description is present and honest', () => {
   const m = HTML.match(/<meta name="description" content="([^"]+)"/);
   assert.ok(m && m[1].length > 40, 'description missing');
 });
+
+test('successful audio playback announces itself visibly', () => {
+  assert.ok(APP.includes("toast('Playing the dry sweep.')"), 'dry sweep toast');
+  assert.ok(APP.includes("toast('Playing the impulse response.')"), 'impulse response toast');
+  assert.ok(APP.includes("toast('Playing the room auralization.')"), 'auralization toast');
+});

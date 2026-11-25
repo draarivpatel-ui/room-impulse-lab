@@ -101,7 +101,7 @@ absorption coefficients are representative mid-band teaching values.
 npm test        # node --test
 ```
 
-The suite (node:test, zero dependencies) holds **334 passing tests** covering
+The suite (node:test, zero dependencies) holds **337 passing tests** covering
 the closed-form acoustics against hand-computed values, the image-source
 lattice, impulse synthesis, Schroeder fitting recovery, clarity metrics and
 ANSI boundaries, ray-bounce fold geometry, SHA-256 vectors, report

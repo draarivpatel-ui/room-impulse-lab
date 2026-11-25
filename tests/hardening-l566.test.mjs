@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { DEFAULT_ROOM, validateRoom } from '../src/acoustics.js';
 import { encodeState, decodeState } from '../src/urlstate.js';
 import { simulate } from '../src/sim.js';
@@ -46,4 +47,24 @@ test('report verification is insensitive to JSON object key order', () => {
     return out;
   };
   assert.ok(verifyReport(reorder(report)).ok);
+});
+
+test('print output is a deliberate light static document in either theme', () => {
+  const css = fs.readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
+  assert.match(css, /@media print/);
+  assert.match(css, /@page \{ size: letter portrait/);
+  assert.match(css, /:root, html\[data-theme='dark'\]/);
+  assert.match(css, /--panel:#ffffff/);
+  assert.match(css, /\.table-wrap \{ overflow:visible/);
+  assert.ok(css.includes('@media print and (max-width: 600px)'));
+});
+
+test('reduced motion disables transitions as well as hover travel', () => {
+  const css = fs.readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
+  const start = css.indexOf('@media (prefers-reduced-motion: reduce)');
+  assert.notEqual(start, -1, 'reduced-motion block exists');
+  const block = css.slice(start);
+  assert.match(block, /transition: none !important/);
+  assert.match(block, /animation-duration: 0\.01ms !important/);
+  assert.match(block, /\.button:hover \{ transform: none; \}/);
 });
