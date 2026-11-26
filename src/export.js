@@ -43,7 +43,9 @@ export function csvCell(value) {
   if (value === null || value === undefined) return '';
   if (typeof value === 'number') return Number.isFinite(value) ? String(value) : '';
   let s = String(value);
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  const lead = (s.match(/^[\s\p{Cc}\p{Cf}\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufe00-\ufe0f\ufeff]*/u) || [''])[0];
+  const rest = s.slice(lead.length);
+  if (lead.length > 0 || /^[=+\-@]/.test(rest)) s = "'" + s;
   if (/[",\n\r]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
   return s;
 }
