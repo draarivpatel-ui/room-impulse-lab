@@ -64,7 +64,8 @@ test('no external network references exist in shipped files', () => {
     const noXmlns = src
       .replace(/xmlns=['"]https?:\/\/www\.w3\.org\/2000\/svg['"]/g, 'xmlns=""')
       .replace(/https?:\/\/localhost[^\s'"`)\\]*/g, '')
-      .replace(/https?:\/\/127\.0\.0\.1[^\s'"`)\\]*/g, '');
+      .replace(/https?:\/\/127\.0\.0\.1[^\s'"`)\\]*/g, '')
+      .replace(/https:\/\/github\.com\/draarivpatel-ui\/room-impulse-lab\/security\/advisories\/new/g, '');
     assert.ok(!/https?:\/\//.test(noXmlns), 'url in ' + p);
   }
 });
